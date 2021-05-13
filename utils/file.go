@@ -3,6 +3,7 @@ package utils
 import (
 	"bufio"
 	"bytes"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -240,4 +241,28 @@ func IsFilePath(s string) bool {
 func GetFileNameWithExt(s string) string {
 	fileName := filepath.Base(s)
 	return fileName[:len(fileName)-len(filepath.Ext(fileName))]
+}
+
+func ReadFileContent(fPath string) string {
+	f, err := os.Open(fPath)
+	if err != nil {
+		return ""
+	}
+
+	defer f.Close()
+	var chunk []byte
+	buf := make([]byte, 1024)
+
+	for {
+		n, err := f.Read(buf)
+		if err != nil && err != io.EOF {
+			return ""
+		}
+		if n == 0 {
+			break
+		}
+		chunk = append(chunk, buf[:n]...)
+	}
+
+	return string(chunk)
 }

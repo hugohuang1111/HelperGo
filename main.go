@@ -40,3 +40,30 @@ func newCmdTrans() cli.Command {
 
 	return trans
 }
+
+func newCmdReplace() cli.Command {
+	trans := cli.NewCommand("replace", "replace string in file under special path").
+		WithArg(cli.NewArg("src", "want to replace string")).
+		WithArg(cli.NewArg("dst", "replaced string")).
+		WithArg(cli.NewArg("path", "run replace on path")).
+		WithAction(func(args []string, options map[string]string) int {
+			src := options["src"]
+			dst := options["dst"]
+			path := options["path"]
+
+			if !filepath.IsAbs(path) {
+				absPath, err := filepath.Abs(path)
+				if nil == err {
+					path = absPath
+				}
+			}
+			err := command.Replace(src, dst, path)
+			if nil != err {
+				log.Error(err)
+				return 1
+			}
+			return 0
+		})
+
+	return trans
+}
