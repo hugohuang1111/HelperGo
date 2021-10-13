@@ -18,7 +18,7 @@ func TransXCFramework(xcframework, output string) error {
 		panic("ERROR, create temp dir failed")
 	}
 
-	archFiles := make([]string, 4)
+	archFiles := make([]string, 0, 4)
 	templateFW := ""
 	utils.Walk(xcframework, 3, func(fPath string, fi os.FileInfo, err error) error {
 		if fi.Name() != libName {
@@ -49,22 +49,22 @@ func TransXCFramework(xcframework, output string) error {
 func splitLib(libPath, libName, workDir string) []string {
 
 	// check lib arch
-	output := utils.RunCmd(fmt.Sprintf("lipo -archs %s", libPath), workDir, true)
+	output := utils.RunCmd(fmt.Sprintf("lipo -archs \"%s\"", libPath), workDir, true)
 
 	// split arch
-	archFiles := make([]string, 4)
+	archFiles := make([]string, 0, 4)
 	archs := strings.Split(string(output), " ")
 	if 0 == len(archs) {
 		return []string{}
 	}
 	if 1 == len(archs) {
-		return []string{libPath}
+		return []string{"\"" + libPath + "\""}
 	}
 	for _, arch := range archs {
 		arch = strings.Trim(arch, "\n")
 		arch = strings.Trim(arch, "\t")
 		fileName := fmt.Sprintf("%s-%s", libName, arch)
-		utils.RunCmd(fmt.Sprintf("lipo %s -thin %s -output %s", libPath, arch, fileName), workDir, true)
+		utils.RunCmd(fmt.Sprintf("lipo \"%s\" -thin %s -output %s", libPath, arch, fileName), workDir, true)
 		archFiles = append(archFiles, fileName)
 	}
 
