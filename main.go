@@ -12,7 +12,8 @@ import (
 func main() {
 	app := cli.New("Helper").
 		WithOption(cli.NewOption("verbose", "Verbose execution").WithChar('v').WithType(cli.TypeBool)).
-		WithCommand(newCmdTrans())
+		WithCommand(newCmdTrans()).
+		WithCommand(newCmdLineCounter())
 
 	os.Exit(app.Run(os.Args, os.Stdout))
 }
@@ -58,6 +59,29 @@ func newCmdReplace() cli.Command {
 				}
 			}
 			err := command.Replace(src, dst, path)
+			if nil != err {
+				log.Error(err)
+				return 1
+			}
+			return 0
+		})
+
+	return trans
+}
+
+func newCmdLineCounter() cli.Command {
+	trans := cli.NewCommand("linecounter", "counter source line of fold").
+		WithArg(cli.NewArg("path", "run replace on path")).
+		WithAction(func(args []string, options map[string]string) int {
+			path := args[0]
+
+			if !filepath.IsAbs(path) {
+				absPath, err := filepath.Abs(path)
+				if nil == err {
+					path = absPath
+				}
+			}
+			err := command.LineCounter(path)
 			if nil != err {
 				log.Error(err)
 				return 1
