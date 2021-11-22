@@ -13,7 +13,9 @@ func main() {
 	app := cli.New("Helper").
 		WithOption(cli.NewOption("verbose", "Verbose execution").WithChar('v').WithType(cli.TypeBool)).
 		WithCommand(newCmdTrans()).
-		WithCommand(newCmdLineCounter())
+		WithCommand(newCmdReplace()).
+		WithCommand(newCmdLineCounter()).
+		WithCommand(newCmdPrefab())
 
 	os.Exit(app.Run(os.Args, os.Stdout))
 }
@@ -82,6 +84,38 @@ func newCmdLineCounter() cli.Command {
 				}
 			}
 			err := command.LineCounter(path)
+			if nil != err {
+				log.Error(err)
+				return 1
+			}
+			return 0
+		})
+
+	return trans
+}
+
+func newCmdPrefab() cli.Command {
+	trans := cli.NewCommand("prefab", "trans unity prefab to cocos").
+		WithArg(cli.NewArg("src", "source path")).
+		WithArg(cli.NewArg("dst", "destion path")).
+		WithAction(func(args []string, options map[string]string) int {
+			src := args[0]
+			dst := args[1]
+
+			if !filepath.IsAbs(src) {
+				absPath, err := filepath.Abs(src)
+				if nil == err {
+					src = absPath
+				}
+			}
+			if !filepath.IsAbs(dst) {
+				absPath, err := filepath.Abs(dst)
+				if nil == err {
+					dst = absPath
+				}
+			}
+
+			err := command.PrefabProcess(src, dst)
 			if nil != err {
 				log.Error(err)
 				return 1
